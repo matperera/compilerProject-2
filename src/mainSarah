@@ -76,7 +76,7 @@ public class main {
 	private static void statement() {
 		while (scan.hasNext()) {
 			String currentLine = scan.nextLine();
-			System.out.println(currentLine);
+//			System.out.println(currentLine);
 			if(currentLine.equals("{")) {
 				System.out.print("<Statement> ::= ");
 				if(scan.hasNext("}")) {
@@ -105,39 +105,62 @@ public class main {
 
 	private static void Declaration(String current) {
 		// TODO Auto-generated method stub
-		System.out.println("<Declaration> ::= ");
-		String currentWord = scan.next();
+		System.out.print("<Declaration> ::= ");
 		int indexOfSpace = current.indexOf(' ');
 		String word = current.substring(0, indexOfSpace);
 		if (word.equals("Integer"))
 			Integer(current.substring(indexOfSpace));
-		System.out.println(currentWord);
+		if(!(current.substring(current.length()-1).equals(";")))
+			Errs.add("Missing semicolon.");
+		printErrors();
+	}
+
+	private static void printErrors() {
+		// TODO Auto-generated method stub
+		if(Errs.size() > 0) {
+			System.out.println("\n\n*****************************************************");
+			for (int i = 0; i < Errs.size(); i++) {
+				System.out.println(Errs.get(i));
+			}
+			System.out.println("*****************************************************");
+			System.out.println("\n\nSyntax is incorrect. Check error above. Total error(s) found " + Errs.size());
+		}
+		else
+			System.out.println("\n\nSyntax is correct. No errors found.");
 	}
 
 	private static void Integer(String current) {
 		// TODO Auto-generated method stub
 		System.out.println(" Integer <Identifier> = <Integer>;");
-		System.out.println(current);
+//		System.out.println(current);
 		while (current.charAt(0) == (' ')) {
 			current = current.substring(1);
 		}
 			
 		String identifier = current;
 		if (!Character.isLetter(identifier.charAt(0))){
-			Errs.add("Invalid identifier");
+			Errs.add("Invalid or missing identifier");
 		}
 		else {
+			System.out.println("<Identifier> ::=<Letter>");
+			System.out.println("<Letter> ::= a|...|Z");
 			int equal = current.indexOf('=');
 			identifier = identifier.substring(0, equal);
 			current = current.substring(equal);
 			while (current.charAt(0) == (' ')) {
 				current = current.substring(1);
 			}
+			boolean error = false;
 			try {
 				int num = Integer.parseInt(current);
 			}
 			catch(Error e) {
-				
+				error = true;
+				Errs.add("Missing 'integer value'");
+			}
+			finally {
+				if (error == false)
+				System.out.println("<Integer> ::= 0|...|9");
 			}
 			
 		}
