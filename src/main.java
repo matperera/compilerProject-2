@@ -91,12 +91,15 @@ public class main {
             currentLine = scan.nextLine();
             if(currentLine.equals("}")) {
                 epsilon();
-            }else if(!currentLine.isEmpty()){
+            }else if(!currentLine.isEmpty() && !currentLine.contains("If")){
                 System.out.println("<Declaration>");
                 Declaration(currentLine);
-            }else {
-                System.out.println("Missing }");
-            }
+            }else if(!currentLine.isEmpty() && currentLine.contains("If")){
+            	System.out.println("<If statement>");
+            	IF(currentLine);
+        	}
+        }else {
+            Errs.add("Missing {");
         }
     }
 
@@ -117,6 +120,8 @@ public class main {
             Integer(current.substring(indexOfSpace));
         else if(word.contains("DOWhile"))
             DoWHile(current);
+        else if(word.contains("If"))
+        	IF(current);
         else{
             Errs.add("Unknown Token");
         }
@@ -182,11 +187,40 @@ public class main {
 
 
     }
+    
+        private static void IF(String current){
+    	System.out.println("<if Statement > ::= If( < Condition > ) {< Statement >}");
+    	
+        String word = current.replace("If","");
+        word=word.replace(" ","");
+        if(word.charAt(0)=='('){
+            if(word.charAt(word.length()-1)==')'){
+                word=word.replace("(","");
+                word=word.replace(")","");
+                conditon(word);
+                statement();
+            }
+            else{
+                Errs.add("Missing )");
+                word=word.replace("(","");
+                conditon(word);
+                statement();
+            }
+        }
+        else{
+            Errs.add("Missing (");
+            word=word.replace(")","");
+            conditon(word);
+            statement();
+        }
+    }
+
 
     private static void printErrors() {
         // TODO Auto-generated method stub
         if(Errs.size() > 0) {
             System.out.println("\n\n*****************************************************");
+            System.out.println("An error is found: description below");
             for (int i = 0; i < Errs.size(); i++) {
                 System.out.println(Errs.get(i));
             }
