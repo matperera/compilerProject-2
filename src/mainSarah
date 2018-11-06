@@ -22,10 +22,8 @@ public class main {
 			writer.write("Group 2 - Juan Moran, Sarah de Pillis-Lindheim, Matt Perera");
 			writer.newLine();
 			while (scan.hasNext()) {
-				boolean passed  = mainCheck();
 				String currentLine = scan.nextLine();
 				if(currentLine.contains("void")||currentLine.contains("main")) {
-//					System.out.print("<APU_CS370> ::=");
 					if(currentLine.substring(0, 4).equals("void")) {
 						currentLine=currentLine.substring(4);
 						if(currentLine.charAt(0)==' ') {
@@ -61,6 +59,7 @@ public class main {
 				writer.newLine();
 			}
 		}finally {
+			printErrors();
 			if (scan != null) {
 				scan.close();
 				writer.close();
@@ -75,52 +74,64 @@ public class main {
 
 	private static void statement() {
 		while (scan.hasNext()) {
+			boolean closed = false;
 			String currentLine = scan.nextLine();
-//			System.out.println(currentLine);
 			if(currentLine.equals("{")) {
-				System.out.print("<Statement> ::= ");
 				if(scan.hasNext("}")) {
-					scan.nextLine();
-					System.out.println("< Empty >");
+					closed = true;
+					System.out.println("<Statement> ::= <Empty>");
+					System.out.println("<Empty> ::= Epsilon");
+							
 				}
-				currentLine = scan.nextLine();
-				//System.out.println(currentLine);
-				if(currentLine.equals("}")) {
-					System.out.println("< Empty >");
-				}else if(!currentLine.isEmpty()){
-					System.out.println("<Declaration>");
-					//System.out.println("The line is not empty");
-					Declaration(currentLine);
-				}else {
-					System.out.println("Missing }");
+				while (scan.hasNext()) {
+					if (scan.hasNext()) {
+						currentLine = scan.nextLine();
+						while(currentLine.isEmpty()) {
+							currentLine = scan.nextLine();
+						}
+						if(currentLine.equals("}")) {
+							closed = true;
+						}else if(!currentLine.isEmpty()){
+							System.out.println("<Statement> ::= <Declaration>");
+							Declaration(currentLine);
+						}else {
+							Errs.add("Missing '}'");
+						}
+					}
 				}
-			}else {
-				/*
-				 * TODO: Fix it so that it does understand the last } is missing
-				 */
-				System.out.println("Missing {");
-			}
 		}
+		else if(currentLine.isEmpty()) {
+			
+		}
+		else {
+			/*
+			 * TODO: Fix it so that it does understand the last } is missing
+			 */
+			Errs.add("Missing '{'");
+		}
+			if(closed == false)
+				Errs.add("Missing '}'");
+	}
+		
+			
 	}
 
 	private static void Declaration(String current) {
-		// TODO Auto-generated method stub
 		System.out.print("<Declaration> ::= ");
 		int indexOfSpace = current.indexOf(' ');
 		String word = current.substring(0, indexOfSpace);
 		if (word.equals("Integer"))
 			Integer(current.substring(indexOfSpace));
-		if(!(current.substring(current.length()-1).equals(";")))
-			Errs.add("Missing semicolon.");
-		printErrors();
+		else if (word.equals("Float"))
+			Float(current.substring(indexOfSpace));
 	}
 
 	private static void printErrors() {
-		// TODO Auto-generated method stub
 		if(Errs.size() > 0) {
 			System.out.println("\n\n*****************************************************");
+			System.out.println("ERRORS");
 			for (int i = 0; i < Errs.size(); i++) {
-				System.out.println(Errs.get(i));
+				System.out.println((i+1) + ". " + Errs.get(i));
 			}
 			System.out.println("*****************************************************");
 			System.out.println("\n\nSyntax is incorrect. Check error above. Total error(s) found " + Errs.size());
@@ -128,11 +139,9 @@ public class main {
 		else
 			System.out.println("\n\nSyntax is correct. No errors found.");
 	}
-
-	private static void Integer(String current) {
-		// TODO Auto-generated method stub
-		System.out.println(" Integer <Identifier> = <Integer>;");
-//		System.out.println(current);
+	
+	private static void Float(String current) {
+		System.out.println(" Float <Identifier> = <Float>;");
 		while (current.charAt(0) == (' ')) {
 			current = current.substring(1);
 		}
@@ -144,23 +153,80 @@ public class main {
 		else {
 			System.out.println("<Identifier> ::=<Letter>");
 			System.out.println("<Letter> ::= a|...|Z");
-			int equal = current.indexOf('=');
-			identifier = identifier.substring(0, equal);
-			current = current.substring(equal);
-			while (current.charAt(0) == (' ')) {
-				current = current.substring(1);
+			int indx = current.indexOf('=');
+			if (indx < 0){
+				Errs.add("Missing '='");
+				indx = current.indexOf(' ');
+				identifier = identifier.substring(0, indx);
 			}
-			boolean error = false;
-			try {
-				int num = Integer.parseInt(current);
+			else {
+				identifier = identifier.substring(0, indx);
+				
+				current = current.substring(indx+1);
+				while (current.charAt(0) == (' ')) {
+					current = current.substring(1);
+				}
+				if((current.substring(current.length()-1).equals(";"))){
+					current = current.replace(";", "");
+					boolean error = false;
+					try {
+						double num = Double.parseDouble(current);
+					}
+					catch(NumberFormatException e) {
+						error = true;
+						Errs.add("Missing 'integer value'");
+					}
+					if (error != true)
+						System.out.println("<Float> ::= .|0|...|9");
+				}
+				else
+					Errs.add("Missing semicolon.");
 			}
-			catch(Error e) {
-				error = true;
-				Errs.add("Missing 'integer value'");
+			
+		}
+	}
+
+	private static void Integer(String current) {
+		System.out.println(" Integer <Identifier> = <Integer>;");
+		while (current.charAt(0) == (' ')) {
+			current = current.substring(1);
+		}
+			
+		String identifier = current;
+		if (!Character.isLetter(identifier.charAt(0))){
+			Errs.add("Invalid or missing identifier");
+		}
+		else {
+			System.out.println("<Identifier> ::=<Letter>");
+			System.out.println("<Letter> ::= a|...|Z");
+			int indx = current.indexOf('=');
+			if (indx < 0){
+				Errs.add("Missing '='");
+				indx = current.indexOf(' ');
+				identifier = identifier.substring(0, indx);
 			}
-			finally {
-				if (error == false)
-				System.out.println("<Integer> ::= 0|...|9");
+			else {
+				identifier = identifier.substring(0, indx);
+
+				current = current.substring(indx+1);
+				while (current.charAt(0) == (' ')) {
+					current = current.substring(1);
+				}
+				if((current.substring(current.length()-1).equals(";"))){
+					current = current.replace(";", "");
+					boolean error = false;
+					try {
+						int num = Integer.parseInt(current);
+					}
+					catch(NumberFormatException e) {
+						error = true;
+						Errs.add("Missing 'integer value'");
+					}
+					if (error != true)
+						System.out.println("<Integer> ::= 0|...|9");
+				}
+				else
+					Errs.add("Missing semicolon.");
 			}
 			
 		}
