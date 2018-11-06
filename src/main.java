@@ -88,18 +88,26 @@ public class main {
 					//System.out.println("The line is not empty");
 					inner(currentLine);
 				}else {
-					System.out.println("Missing }");
+					error("Missing }");
+					break;
 				}
 			}else {
 				/*
 				 * TODO: Fix it so that it does understand the last } is missing
 				 */
-				System.out.println("Missing {");
+				error("Missing {");
 				break;
 			}
 		}
 	}
-
+	
+	private static void error(String s) {
+		System.out.println("\n*****************************************************");
+		System.out.println("An error is found: description below");
+		System.out.println(s);
+		System.out.println("*****************************************************\n");
+		System.out.print("Syntax is Incorrect. Check error above. Total error(s) found 1");
+	}
 	private static void inner(String current) {
 		// TODO Auto-generated method stub
 		System.out.println(current);
